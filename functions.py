@@ -19,3 +19,8 @@ def zeroInEmpty(dict):
                 dict[a][i] = 0.0
 
     return dict
+
+def createEmpty(dict, levelName, emptyValue):
+    if levelName not in dict:
+        dict[levelName] = emptyValue
+    return dict[levelName]
