@@ -1,6 +1,6 @@
 import csv
 
-
+# Gets data as a list of dictionaries from csv file:
 def getListFromCSV(file):
     with open(file) as file:
         csvReader = csv.DictReader(file, delimiter=',')
@@ -8,6 +8,7 @@ def getListFromCSV(file):
     return sampleData
 
 
+# Adds zero values if there are non in a given level:
 def zeroInEmpty(dict):
     allValues = set()
     for a in dict:
@@ -21,6 +22,7 @@ def zeroInEmpty(dict):
     return dict
 
 
+# Creates empty dictionary ( if {} is given) or zero value (if 0 is given). It is usefull in FOR cycles.
 def createEmpty(dict, levelName, emptyValue):
     if levelName not in dict:
         dict[levelName] = emptyValue
