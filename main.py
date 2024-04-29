@@ -1,143 +1,86 @@
-print('-----------------uzdavinys is sampleData.csv failo--------------------')
-from csv import reader
-# uždaviniams spręsti kurkite savo funkcijas, pasidarykite taip, kad būtų patogu dirbti. k - income, d - outcome
-# 1. kokios valiutos buvo naudotos?
-# 2. kiek income, outcome?(ignoruojant valiutas)
-# 3. kiek income, outcome pagal kiekvieną valiutą?
-# 4. kiek buvo išleista kiekvieną mėnesį?
-# 5. kiek buvo uždirbta kiekvieną mėnesį?
-# 6. koks pinigų likutis kiekvieno mėnesio gale? (sausio pradžioje likutis buvo 0.00)(ignoruojant valiutas)
-# 7. koks pinigų likutis kiekvieno mėnesio gale? (sausio pradžioje likutis buvo 0.00) pagal kiekvieną valiutą?
-# 8. atvaizduokite per procentinę išraišką pamėnesiui pajamas ir išlaidas procentine išraiška: (žemiau pvz)
+import functions
+import yaml
 
-with open('sampleData_results.csv', 'w') as file:
-    file.write('')
+sampleData = functions.getListFromCSV('sampleData.csv')
 
-with open('sampleData.csv') as file:
-    csvReader = reader(file, delimiter=',')
-    next(csvReader)
-    data = list(csvReader)
+#---------------------------------------------------------------
 
-#--------------------------
+currencyValues = {}
 
-# Naudotu valiutu isvedimas i atskira masyva, sumos be valiutu
-with open('sampleData.csv') as failas:
-    csv_reader = reader(failas, delimiter=',')
-    next(csv_reader)
-    naudotosValiutos = []
-    sumosBeValiutos = {}
-    sumosBeValiutos['incomeSuma'] = 0
-    sumosBeValiutos['outcomeSuma'] = 0
-    for eilute in csv_reader:
-        naudotosValiutos.append(eilute[6])
-        if eilute[7] == 'K':
-             sumosBeValiutos['incomeSuma'] += float(eilute[5])
-        if eilute[7] == 'D':
-             sumosBeValiutos['outcomeSuma'] += float(eilute[5])
-    naudotosValiutos = set(naudotosValiutos)
+for row in sampleData:
+    DK = row['D/K']
+    currency = row['Valiuta']
+    value = float(row['Suma'])
+    if DK not in currencyValues:
+        currencyValues[DK] = {}
+    if currency not in currencyValues[DK]:
+        currencyValues[DK][currency] = 0.0
+    currencyValues[DK][currency] += value
 
-# sumu pagal valiutas skaiciavimas
-sumosIncomeValiutom = {}
-sumosOutcomeValiutom = {}
-for valiuta in naudotosValiutos:
-    sumosIncomeValiutom[valiuta] = 0
-    sumosOutcomeValiutom[valiuta] = 0
-    with open('sampleData.csv') as failas:
-        csv_reader = reader(failas, delimiter=',')
-        next(csv_reader)
-        for eilute in csv_reader:
-            if eilute[7] == 'K' and eilute[6] == valiuta:
-                sumosIncomeValiutom[valiuta] += float(eilute[5])
-            if eilute[7] == 'D' and eilute[6] == valiuta:
-                sumosOutcomeValiutom[valiuta] += float(eilute[5])
+currencyValues = functions.zeroInEmpty(currencyValues)
 
-# menesiu masyvo sukurimas
-with open('sampleData.csv') as failas:
-    csv_reader = reader(failas, delimiter=',')
-    next(csv_reader)
-    menesiai = []
-    menesiuISlaidos = {}
-    for eilute in csv_reader:
-        menesiai.append(eilute[2][5:7])
-    menesiai = set(menesiai)
+print('By currency:\n', yaml.dump(currencyValues, default_flow_style=False))
 
-menesiai = sorted(list(menesiai))
+#----------------------------------------------------------------------
 
-#sumavimas pagal menesius
-sumosIncomeMenesiais = {}
-sumosOutcomeMenesiais = {}
-for menesis in menesiai:
-    sumosIncomeMenesiais[menesis] = 0
-    sumosOutcomeMenesiais[menesis] = 0
-    with open('sampleData.csv') as failas:
-        csv_reader = reader(failas, delimiter=',')
-        next(csv_reader)
-        for eilute in csv_reader:
-            if eilute[7] == 'K' and eilute[2][5:7] == menesis:
-                sumosIncomeMenesiais[menesis] += float(eilute[5])
-            if eilute[7] == 'D' and eilute[2][5:7] == menesis:
-                sumosOutcomeMenesiais[menesis] += float(eilute[5])
+monthValues = {}
 
+for row in sampleData:
+    month = row['Data'][5:7]
+    DK = row['D/K']
+    value = float(row['Suma'])
+    if month not in monthValues:
+        monthValues[month] = {}
+    if DK not in monthValues[month]:
+        monthValues[month][DK] = 0.0
+    monthValues[month][DK] += value
 
-print(f'Naudotos valiutos: {naudotosValiutos}') # 1 uzduotis
-print(f'Sumos (be valiutos): {sumosBeValiutos}') # 2 uzd
-print(f'Income pagal valiutas: {sumosIncomeValiutom}') # 3 uzd
-print(f'Outcome pagal valiutas: {sumosOutcomeValiutom}') # 3 uzd
-print(f'Income pagal menesius: {sumosIncomeMenesiais}') # 4 uzd
-print(f'Outcome pagal menesius: {sumosOutcomeMenesiais}') # 4 uzd
-print('')
+print('By month:\n', yaml.dump(monthValues, default_flow_style=False))
 
-# Likucio menesio gale skaiciavimas:
-for valiuta in naudotosValiutos:
-    suma = 0
-    for menesis in menesiai:
-        with open('sampleData.csv') as failas:
-            csv_reader = reader(failas, delimiter=',')
-            next(csv_reader)
-            for eilute in csv_reader:
-                if eilute[7] == 'K' and eilute[2][5:7] == menesis and eilute[6] == valiuta:
-                    suma += float(eilute[5])
-                if eilute[7] == 'D' and eilute[2][5:7] == menesis and eilute[6] == valiuta:
-                    suma -= float(eilute[5])
-            print(f'Likutis menesio {menesis} gale pagal valiuta {valiuta} yra: {suma}')
-print('')
+#---------------------------------------------------------
 
-#pamenesiui procentine israiska
-#-- sausis:
-#-- -- income:
-#-- -- Eur: 29%
-#-- -- DK: 0%
-#-- -- outcome:
-#-- -- Eur: 36%
-#-- -- DK: 19%
+monthEndValue = {}
 
-for menesis in menesiai:
-    print('------------------------')
-    print(f'menesis - {menesis}:')
+for row in sampleData:
+    currency = row['Valiuta']
+    month = row['Data'][5:7]
+    value = float(row['Suma'])
+    if currency not in monthEndValue:
+        monthEndValue[currency] = {}
+    if month not in monthEndValue[currency]:
+        monthEndValue[currency][month] = 0.0
+    if row['D/K'] == 'K':
+        monthEndValue[currency][month] += value
+    if row['D/K'] == 'D':
+        monthEndValue[currency][month] -= value
 
-    for xcome in ['K', 'D']:
-        print(f'    {xcome}: ')
-        for valiuta in naudotosValiutos:
-            print(f'        {valiuta}: ', end='')
-            suma = 0
-            with open('sampleData.csv') as failas:
-                csv_reader = reader(failas, delimiter=',')
-                next(csv_reader)
-                for eilute in csv_reader:
-                    if eilute[7] == xcome and eilute[2][5:7] == menesis and eilute[6] == valiuta:
-                        suma += float(eilute[5])
-            if xcome == 'K' and sumosIncomeValiutom[valiuta] != 0:
-                proc = round((suma/sumosIncomeValiutom[valiuta])*100, ndigits=1)
-                print(f'{proc}%')
-            if xcome == 'K' and sumosIncomeValiutom[valiuta] == 0:
-                proc = 0.00
-                print(f'{proc}%')
-            if xcome == 'D' and sumosOutcomeValiutom[valiuta] != 0:
-                proc = round((suma/sumosOutcomeValiutom[valiuta])*100, ndigits=1)
-                print(f'{proc}%')
-            if xcome == 'D' and sumosOutcomeValiutom[valiuta] == 0:
-                proc = 0.00
-                print(f'{proc}%')
+print('Net value by the end of the month:\n', yaml.dump(monthEndValue, default_flow_style=False))
 
+#---------------------------------------------------------
 
+percentageValue = {}
+#
+for row in sampleData:
+    month = row['Data'][5:7]
+    DK = row['D/K']
+    currency = row['Valiuta']
+    value = float(row['Suma'])
+    if month not in percentageValue:
+        percentageValue[month] = {}
+    if DK not in percentageValue[month]:
+        percentageValue[month][DK] = {}
+    if currency not in percentageValue[month][DK]:
+        percentageValue[month][DK][currency] = 0.0
+    percentageValue[month][DK][currency] += value
+
+for month in percentageValue:
+    percentageValue[month] = functions.zeroInEmpty(percentageValue[month])
+
+for month in percentageValue:
+    for DK in percentageValue[month]:
+        for currency in percentageValue[month][DK]:
+            if percentageValue[month][DK][currency] > 0.0:
+                percentageValue[month][DK][currency] = round(percentageValue[month][DK][currency]/currencyValues[DK][currency]*100, 2)
+
+print('Percentage:\n', yaml.dump(percentageValue, default_flow_style=False))
 
